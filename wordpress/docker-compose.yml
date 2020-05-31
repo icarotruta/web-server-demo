@@ -1,0 +1,64 @@
+version: '3.7'
+
+services:
+
+  nginx:
+    container_name: nginx
+    image: linuxserver/letsencrypt
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./nginx/config:/config
+      - ./nginx/nginx.conf:/config/nginx/site-confs/default
+      - ./nginx/ssl.conf:/config/nginx/ssl.conf
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Recife
+      - URL=server.url.com
+      - SUBDOMAINS=www
+      - VALIDATION=http
+#      - DNSPLUGIN=cloudflare #optional
+#      - PROPAGATION= #optional
+#      - DUCKDNSTOKEN= #optional
+      - EMAIL= my@email.com
+      - DHLEVEL=2048 #optional
+#      - ONLY_SUBDOMAINS=false #optional
+#      - EXTRA_DOMAINS= #optional
+      - STAGING=false #optional Dev or Prod
+
+  wordpress:
+    container_name: wordpress
+    image: wordpress:5.4.1-php7.3-apache
+    restart: always
+    depends_on:
+      - mysql
+    stdin_open: true
+    tty: true
+    volumes:
+     - ./wordpress:/var/www/html
+    ports:
+      - 8080:80
+      - 8443:443
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_USER: wp-user 
+      WORDPRESS_DB_PASSWORD: wp-p4ssw0rd
+      WORDPRESS_DB_NAME: wp-database
+
+  mysql:
+    container_name: mysql
+    image: mysql:5.6
+    volumes:
+      - ./mysql/data:/var/lib/mysql
+      - ./mysql/configs/my.cnf:/etc/mysql/my.cnf
+    ports:
+      - 3306:3306
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: aag!#!$gyyasd
+      MYSQL_DATABASE: wp-database
+      MYSQL_USER: wp-user
+      MYSQL_PASSWORD: wp-p4ssw0rd
